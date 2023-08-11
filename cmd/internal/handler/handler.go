@@ -9,7 +9,7 @@ import (
 
 type Authorization interface {
 	SignUp(ctx context.Context, user *models.SignUpInput) (uuid.UUID, error)
-	SignIn(ctx context.Context, user *models.SignInInput) error
+	SignIn(ctx context.Context, user *models.SignInInput) (string, error)
 }
 
 type User interface {
@@ -30,5 +30,18 @@ func NewHandler(userS User, authS Authorization) *Handler {
 }
 
 func (h *Handler) InitRoutes(router *echo.Echo) *echo.Echo {
+
+	auth := router.Group("/auth")
+	auth.POST("/sign_up", h.SignUp)
+	auth.POST("/sign_in", h.SignIn)
+
+	api := router.Group("api")
+	api.POST("/users", h.CreateUser)
+	api.GET("/users", h.GetUsers)
+	api.GET("/users/:id", h.GetUserByID)
+	api.PUT("/users/:id", h.UpdateUser)
+	api.DELETE("/users/:id", h.DeleteUser)
+
+	router.Logger.Fatal(router.Start(":8000"))
 	return router
 }
