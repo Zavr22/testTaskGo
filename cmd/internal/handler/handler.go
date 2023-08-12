@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"testTask/cmd/internal/middleware"
 	"testTask/cmd/models"
 )
 
@@ -14,8 +15,8 @@ type Authorization interface {
 
 type User interface {
 	CreateUser(ctx context.Context, email, username, password string, admin bool) (uuid.UUID, error)
-	GetAllUsers(ctx context.Context) ([]*models.UserProfile, error)
-	GetUser(ctx context.Context, userID uuid.UUID) (models.UserProfile, error)
+	GetAllUsers(ctx context.Context) ([]*models.UserResponse, error)
+	GetUser(ctx context.Context, userID uuid.UUID) (models.UserResponse, error)
 	UpdateProfile(ctx context.Context, userID uuid.UUID, input models.UpdateProfileInput) error
 	DeleteProfile(ctx context.Context, userID uuid.UUID) error
 }
@@ -36,12 +37,12 @@ func (h *Handler) InitRoutes(router *echo.Echo) *echo.Echo {
 	auth.POST("/sign_in", h.SignIn)
 
 	api := router.Group("api")
-	api.POST("/users", h.CreateUser)
+	api.POST("/users", h.CreateUser, middleware.AdminMiddleware())
 	api.GET("/users", h.GetUsers)
 	api.GET("/users/:id", h.GetUserByID)
-	api.PUT("/users/:id", h.UpdateUser)
-	api.DELETE("/users/:id", h.DeleteUser)
+	api.PUT("/users/:id", h.UpdateUser, middleware.AdminMiddleware())
+	api.DELETE("/users/:id", h.DeleteUser, middleware.AdminMiddleware())
 
-	router.Logger.Fatal(router.Start(":8000"))
+	router.Logger.Fatal(router.Start(":9000"))
 	return router
 }

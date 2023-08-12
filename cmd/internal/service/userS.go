@@ -8,8 +8,8 @@ import (
 
 type User interface {
 	CreateUser(ctx context.Context, email, username, password string, admin bool) (uuid.UUID, error)
-	GetAllUsers(ctx context.Context) ([]*models.UserProfile, error)
-	GetUser(ctx context.Context, userID uuid.UUID) (models.UserProfile, error)
+	GetAllUsers(ctx context.Context) ([]*models.UserResponse, error)
+	GetUser(ctx context.Context, userID uuid.UUID) (models.UserResponse, error)
 	UpdateProfile(ctx context.Context, userID uuid.UUID, input models.UpdateProfileInput) error
 	DeleteProfile(ctx context.Context, userID uuid.UUID) error
 }
@@ -26,11 +26,11 @@ func (s *UserService) CreateUser(ctx context.Context, email, username, password 
 	return s.userRepo.CreateUser(ctx, email, username, password, admin)
 }
 
-func (s *UserService) GetAllUsers(ctx context.Context) ([]*models.UserProfile, error) {
+func (s *UserService) GetAllUsers(ctx context.Context) ([]*models.UserResponse, error) {
 	return s.userRepo.GetAllUsers(ctx)
 }
 
-func (s *UserService) GetUser(ctx context.Context, userID uuid.UUID) (models.UserProfile, error) {
+func (s *UserService) GetUser(ctx context.Context, userID uuid.UUID) (models.UserResponse, error) {
 	return s.userRepo.GetUser(ctx, userID)
 }
 
