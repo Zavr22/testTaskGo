@@ -7,8 +7,10 @@ import (
 	"github.com/sirupsen/logrus"
 	"os"
 	"testTask/cmd/internal/handler"
+	middleware2 "testTask/cmd/internal/middleware"
 	"testTask/cmd/internal/repository"
 	"testTask/cmd/internal/service"
+	"testTask/cmd/internal/utils"
 )
 
 func main() {
@@ -26,12 +28,14 @@ func main() {
 			return nil
 		},
 	}))
+	e.Use(middleware2.BasicAuthMiddleware())
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",
 		Password: "",
 		DB:       0,
 	})
 
+	utils.SetRedisClient(rdb)
 	userRepo := repository.NewUserRepo(rdb)
 	authRepo := repository.NewAuthRepo(rdb)
 

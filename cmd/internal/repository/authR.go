@@ -7,6 +7,8 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+	"log"
+	"strings"
 	"testTask/cmd/models"
 )
 
@@ -26,7 +28,17 @@ func (r *AuthRepo) SignUp(ctx context.Context, user *models.SignUpInput) (uuid.U
 	if err != nil {
 		return uuid.Nil, err
 	}
-	err = r.client.HSet(ctx, "users", userID.String(), fmt.Sprintf("%s:%s", user.Username, string(hashedPassword))).Err()
+	userData := map[string]interface{}{
+		"email":    user.Email,
+		"username": user.Username,
+		"password": user.Password,
+		"admin":    user.Admin,
+	}
+	err = r.client.HMSet(ctx, userID.String(), userData).Err()
+	if err != nil {
+		return uuid.Nil, err
+	}
+	err = r.client.HSet(ctx, "users", fmt.Sprintf("%s:id", userID.String()), fmt.Sprintf("%s:%s", user.Username, string(hashedPassword))).Err()
 	if err != nil {
 		return uuid.Nil, err
 	}
@@ -34,22 +46,44 @@ func (r *AuthRepo) SignUp(ctx context.Context, user *models.SignUpInput) (uuid.U
 }
 
 func (r *AuthRepo) SignIn(ctx context.Context, user *models.SignInInput) (string, error) {
-	usersData, err := r.client.HGetAll(ctx, "users").Result()
+	log.Printf("Attempting to sign in user with username: %s", user.Username)
+	users, err := r.client.HGetAll(ctx, "users").Result()
 	if err != nil {
-		return "", err
+		log.Printf("Error occurred while retrieving users: %s", err)
+		return "", fmt.Errorf("error occurred: %s", err)
 	}
 	var userID string
-	var userCredentials string
-	for id, credentials := range usersData {
-		if credentials == fmt.Sprintf("%s:%s", user.Username, user.Password) {
-			userID = id
-			userCredentials = credentials
+	for id, userData := range users {
+		username := strings.Split(userData, ":")[0]
+		if username == user.Username {
+			userID = strings.Split(id, ":")[0]
 			break
 		}
 	}
 	if userID == "" {
-		return "", fmt.Errorf("User not found")
+		log.Printf("User with username %s not found", user.Username)
+		return "", fmt.Errorf("user not found")
 	}
-	token := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", userID, userCredentials)))
+	userData, err := r.client.HGetAll(ctx, userID).Result()
+	if err != nil {
+		log.Printf("Error occurred while retrieving user data: %s", err)
+		return "", fmt.Errorf("error occurred: %s", err)
+	}
+	storedPassword, ok := userData["password"]
+	if !ok {
+		log.Printf("Password not found for user with username %s", user.Username)
+		return "", fmt.Errorf("user password not found")
+	}
+
+	if storedPassword != user.Password {
+		log.Printf("Incorrect password for user with username %s", user.Username)
+		return "", fmt.Errorf("incorrect password")
+	}
+
+	log.Printf("User with username %s successfully signed in", user.Username)
+	log.Printf("User data: %+v", userData)
+	encodedUserID := base64.StdEncoding.EncodeToString([]byte(userID))
+	encodedPassword := base64.StdEncoding.EncodeToString([]byte(user.Password))
+	token := encodedUserID + ":" + encodedPassword
 	return token, nil
 }
