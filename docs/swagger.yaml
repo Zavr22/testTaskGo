@@ -1,0 +1,316 @@
+basePath: /
+definitions:
+  models.CommonResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  models.CreateUserResponse:
+    properties:
+      user_id:
+        type: string
+    type: object
+  models.SignInInput:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  models.SignInResponse:
+    properties:
+      token:
+        type: string
+    type: object
+  models.SignUpInput:
+    properties:
+      admin:
+        type: boolean
+      email:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  models.UpdateProfileInput:
+    properties:
+      admin:
+        type: boolean
+      email:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  models.UserProfile:
+    properties:
+      admin:
+        type: boolean
+      email:
+        type: string
+      id:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  models.UserResponse:
+    properties:
+      ID:
+        type: string
+      email:
+        type: string
+      user_name:
+        type: string
+    type: object
+host: localhost:9000
+info:
+  contact: {}
+  description: API Server for Test Task
+  title: TestTask Server
+  version: "1.0"
+paths:
+  /api/users:
+    get:
+      consumes:
+      - application/json
+      description: get users
+      operationId: get-users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.UserResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.CommonResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.CommonResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.CommonResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.CommonResponse'
+      summary: Get users
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: create user
+      operationId: create-user
+      parameters:
+      - description: user info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserProfile'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CreateUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.CommonResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.CommonResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.CommonResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.CommonResponse'
+      summary: Create user
+      tags:
+      - users
+  /api/users/:id:
+    delete:
+      consumes:
+      - application/json
+      description: delete user
+      operationId: delete-user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CommonResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.CommonResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.CommonResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.CommonResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.CommonResponse'
+      summary: Delete user
+      tags:
+      - users
+    get:
+      consumes:
+      - application/json
+      description: get user by id
+      operationId: get-user-by-id
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.CommonResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.CommonResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.CommonResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.CommonResponse'
+      summary: Get user by id
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: update user
+      operationId: update-user
+      parameters:
+      - description: enter new account info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateProfileInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CommonResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.CommonResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.CommonResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.CommonResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.CommonResponse'
+      summary: Update user
+      tags:
+      - users
+  /auth/sign_in:
+    post:
+      consumes:
+      - application/json
+      description: login
+      operationId: login
+      parameters:
+      - description: enter username and password
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.SignInInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SignInResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.CommonResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.CommonResponse'
+      summary: SignIn
+      tags:
+      - auth
+  /auth/sign_up:
+    post:
+      consumes:
+      - application/json
+      description: create account
+      operationId: create-account
+      parameters:
+      - description: account info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.SignUpInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CreateUserResponse'
+        "400":
+          description: cannot create user
+          schema:
+            $ref: '#/definitions/models.CommonResponse'
+        "500":
+          description: data not correct
+          schema:
+            $ref: '#/definitions/models.CommonResponse'
+      summary: SignUp
+      tags:
+      - auth
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

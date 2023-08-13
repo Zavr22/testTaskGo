@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
+	"github.com/Zavr22/testTaskGo/internal/models"
 	"github.com/google/uuid"
-	"testTask/cmd/models"
 )
 
 type Authorization interface {

@@ -2,16 +2,16 @@ package middleware
 
 import (
 	"encoding/base64"
+	"github.com/Zavr22/testTaskGo/internal/utils"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"strings"
-	"testTask/cmd/internal/utils"
 )
 
 func BasicAuthMiddleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) (err error) {
-			if c.Path() == "/auth/sign_up" || c.Path() == "/auth/sign_in" {
+			if c.Path() == "/auth/sign_up" || c.Path() == "/auth/sign_in" || c.Path() == "/swagger/*" {
 				return next(c)
 			}
 			req := c.Request()
