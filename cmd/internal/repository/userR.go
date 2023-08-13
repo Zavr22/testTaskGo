@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 	"log"
 	"strings"
 	"testTask/cmd/models"
@@ -21,7 +22,26 @@ func NewUserRepo(client *redis.Client) *UserRepo {
 }
 
 func (r *UserRepo) CreateUser(ctx context.Context, email, username, password string, admin bool) (uuid.UUID, error) {
-	return uuid.Nil, nil
+	userID := uuid.New()
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	userData := map[string]interface{}{
+		"email":    email,
+		"username": username,
+		"password": password,
+		"admin":    admin,
+	}
+	err = r.client.HMSet(ctx, userID.String(), userData).Err()
+	if err != nil {
+		return uuid.Nil, err
+	}
+	err = r.client.HSet(ctx, "users", userID.String(), fmt.Sprintf("%s:%s", username, string(hashedPassword))).Err()
+	if err != nil {
+		return uuid.Nil, err
+	}
+	return userID, nil
 }
 
 func (r *UserRepo) GetAllUsers(ctx context.Context) ([]*models.UserResponse, error) {
@@ -67,14 +87,48 @@ func (r *UserRepo) GetUser(ctx context.Context, userID uuid.UUID) (models.UserRe
 }
 
 func (r *UserRepo) UpdateProfile(ctx context.Context, userID uuid.UUID, input models.UpdateProfileInput) error {
+	tx := r.client.TxPipeline()
+	if input.NewEmail != "" {
+		tx.HSet(ctx, userID.String(), "email", input.NewEmail)
+	}
+	if input.NewUsername != "" {
+		tx.HSet(ctx, userID.String(), "username", input.NewUsername)
+	}
+	if input.NewPassword != "" {
+		tx.HSet(ctx, userID.String(), "password", input.NewPassword)
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.NewPassword), bcrypt.DefaultCost)
+		if err != nil {
+			log.Printf("error while hashing password, %s", err)
+			return fmt.Errorf("error while hashing password, %s", err)
+		}
+		tx.HSet(ctx, "users", userID.String(), fmt.Sprintf("%s:%s", input.NewUsername, hashedPassword))
+	}
+	tx.HSet(ctx, userID.String(), "admin", input.Admin)
+	_, err := tx.Exec(ctx)
+	if err != nil {
+		if err == redis.TxFailedErr {
+			log.Printf("transaction failed due to concurrent modification, %s", err)
+			return fmt.Errorf("transaction failed due to concurrent modificationб, %s", err)
+		}
+		log.Printf("error in transaction, %s", err)
+		return fmt.Errorf("error in transaction, %s", err)
+	}
 	return nil
 }
 
 func (r *UserRepo) DeleteProfile(ctx context.Context, userID uuid.UUID) error {
-	err := r.client.Del(ctx, userID.String()).Err()
+	tx := r.client.TxPipeline()
+	tx.Del(ctx, userID.String())
+	tx.Del(ctx, userID.String(), "*:*")
+	_, err := tx.Exec(ctx)
 	if err != nil {
-		log.Printf("error while delete user, %s", err)
-		return err
+		if err == redis.TxFailedErr {
+			log.Println("transaction failed due to concurrent modification")
+			return fmt.Errorf("transaction failed due to concurrent modification")
+		}
+		log.Printf("error in transaction, %s", err)
+		return fmt.Errorf("error in transaction, %s", err)
 	}
+
 	return nil
 }

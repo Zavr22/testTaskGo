@@ -38,7 +38,7 @@ func (r *AuthRepo) SignUp(ctx context.Context, user *models.SignUpInput) (uuid.U
 	if err != nil {
 		return uuid.Nil, err
 	}
-	err = r.client.HSet(ctx, "users", fmt.Sprintf("%s:id", userID.String()), fmt.Sprintf("%s:%s", user.Username, string(hashedPassword))).Err()
+	err = r.client.HSet(ctx, "users", userID.String(), fmt.Sprintf("%s:%s", user.Username, string(hashedPassword))).Err()
 	if err != nil {
 		return uuid.Nil, err
 	}
@@ -56,7 +56,7 @@ func (r *AuthRepo) SignIn(ctx context.Context, user *models.SignInInput) (string
 	for id, userData := range users {
 		username := strings.Split(userData, ":")[0]
 		if username == user.Username {
-			userID = strings.Split(id, ":")[0]
+			userID = id
 			break
 		}
 	}
