@@ -3,12 +3,12 @@ package repository
 import (
 	"context"
 	"fmt"
+	"github.com/Zavr22/testTaskGo/internal/models"
 	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"log"
 	"strings"
-	"testTask/cmd/models"
 )
 
 // UserRepo has an internal db object

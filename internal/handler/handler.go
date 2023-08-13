@@ -2,10 +2,10 @@ package handler
 
 import (
 	"context"
+	"github.com/Zavr22/testTaskGo/internal/middleware"
+	"github.com/Zavr22/testTaskGo/internal/models"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"testTask/cmd/internal/middleware"
-	"testTask/cmd/models"
 )
 
 type Authorization interface {
