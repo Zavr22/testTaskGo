@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "API Server for Test Task",
+        "description": "Basic authentication username and password",
         "title": "TestTask Server",
         "contact": {},
         "version": "1.0"
@@ -297,7 +297,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.SignInResponse"
+                            "$ref": "#/definitions/models.CommonResponse"
                         }
                     },
                     "401": {
@@ -391,14 +391,6 @@
                 }
             }
         },
-        "models.SignInResponse": {
-            "type": "object",
-            "properties": {
-                "token": {
-                    "type": "string"
-                }
-            }
-        },
         "models.SignUpInput": {
             "type": "object",
             "properties": {
@@ -469,10 +461,8 @@
         }
     },
     "securityDefinitions": {
-        "ApiKeyAuth": {
-            "type": "apiKey",
-            "name": "Authorization",
-            "in": "header"
+        "BasicAuth": {
+            "type": "basic"
         }
     }
 }

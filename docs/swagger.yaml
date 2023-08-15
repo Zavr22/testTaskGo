@@ -17,11 +17,6 @@ definitions:
       username:
         type: string
     type: object
-  models.SignInResponse:
-    properties:
-      token:
-        type: string
-    type: object
   models.SignUpInput:
     properties:
       admin:
@@ -69,7 +64,7 @@ definitions:
 host: localhost:9000
 info:
   contact: {}
-  description: API Server for Test Task
+  description: Basic authentication username and password
   title: TestTask Server
   version: "1.0"
 paths:
@@ -265,7 +260,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.SignInResponse'
+            $ref: '#/definitions/models.CommonResponse'
         "401":
           description: Unauthorized
           schema:
@@ -309,8 +304,6 @@ paths:
       tags:
       - auth
 securityDefinitions:
-  ApiKeyAuth:
-    in: header
-    name: Authorization
-    type: apiKey
+  BasicAuth:
+    type: basic
 swagger: "2.0"

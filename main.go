@@ -3,7 +3,6 @@ package main
 import (
 	_ "github.com/Zavr22/testTaskGo/docs"
 	"github.com/Zavr22/testTaskGo/internal/handler"
-	middleware2 "github.com/Zavr22/testTaskGo/internal/middleware"
 	repository2 "github.com/Zavr22/testTaskGo/internal/repository"
 	service2 "github.com/Zavr22/testTaskGo/internal/service"
 	"github.com/Zavr22/testTaskGo/internal/utils"
@@ -22,9 +21,9 @@ import (
 // @host localhost:9000
 // @BasePath /
 
-// @securityDefinitions.apikey ApiKeyAuth
-// @in header
-// @name Authorization
+// @securityDefinitions.basic BasicAuth
+// @description Basic authentication username and password
+// @type basic
 func main() {
 	e := echo.New()
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
@@ -41,12 +40,39 @@ func main() {
 			return nil
 		},
 	}))
-	e.Use(middleware2.BasicAuthMiddleware())
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",
 		Password: "",
 		DB:       0,
 	})
+	skipperFunc := func(c echo.Context) bool {
+		if c.Path() == "/auth/sign_up" {
+			return true
+		}
+		if c.Path() == "/auth/sign_in" {
+			return true
+		}
+		if c.Path() == "/swagger/*" {
+			return true
+		}
+		return false
+	}
+	config := middleware.BasicAuthConfig{
+		Skipper: skipperFunc,
+		Validator: func(username, password string, c echo.Context) (bool, error) {
+			val, err := utils.IsUserValid(username, password)
+			if err != nil {
+				logger.Println(err)
+				return false, err
+			}
+			if val == true {
+				return true, nil
+			} else {
+				return false, nil
+			}
+		},
+	}
+	e.Use(middleware.BasicAuthWithConfig(config))
 
 	utils.SetRedisClient(rdb)
 	userRepo := repository2.NewUserRepo(rdb)

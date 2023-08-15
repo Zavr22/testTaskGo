@@ -1,12 +1,11 @@
 package utils
 
 import (
-	"errors"
+	"fmt"
 	"github.com/go-redis/redis/v8"
 	"golang.org/x/crypto/bcrypt"
 	"log"
 	"strconv"
-	"strings"
 )
 
 var redisClient *redis.Client
@@ -15,34 +14,57 @@ func SetRedisClient(client *redis.Client) {
 	redisClient = client
 }
 
-func IsUserValid(authToken []string) (bool, error) {
-	val, err := redisClient.HGet(redisClient.Context(), "users", authToken[0]).Result()
+func IsUserValid(username, password string) (bool, error) {
+	val, err := redisClient.Keys(redisClient.Context(), "*").Result()
 	if err != nil {
 		if err == redis.Nil {
-			log.Println("Key does not exist in Redis:", authToken[0])
+			log.Println("Key does not exist in Redis:", username)
 			return false, nil
 		}
 		log.Println("Redis error while retrieving value:", err)
 		return false, err
 	}
-	hashedPassword := val[strings.Index(val, ":")+1:]
-	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(authToken[1]))
-	if err == nil {
-		return true, nil
-	} else if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
-		log.Println("Value from Redis does not match expected password:", val)
-		return false, nil
-	} else {
-		log.Println("Error comparing passwords:", err)
+	for _, value := range val {
+		user, err := redisClient.HGetAll(redisClient.Context(), value).Result()
+		if err != nil {
+			return false, fmt.Errorf("error while getting, %s", err)
+		}
+		if user["username"] == username {
+			err = bcrypt.CompareHashAndPassword([]byte(user["password"]), []byte(password))
+			if err != nil {
+				continue
+			}
+			return true, nil
+		}
 	}
-	return false, err
+	return false, nil
 }
 
-func IsAdmin(authToken []string) (bool, error) {
-	user, err := redisClient.HGetAll(redisClient.Context(), authToken[0]).Result()
-	adminValue, _ := strconv.Atoi(user["admin"])
-	if adminValue == 1 {
-		return true, nil
+func IsAdmin(username, password string) (bool, error) {
+	val, err := redisClient.Keys(redisClient.Context(), "*").Result()
+	if err != nil {
+		if err == redis.Nil {
+			log.Println("Key does not exist in Redis:", username)
+			return false, nil
+		}
+		log.Println("Redis error while retrieving value:", err)
+		return false, err
 	}
-	return false, err
+	for _, value := range val {
+		user, err := redisClient.HGetAll(redisClient.Context(), value).Result()
+		if err != nil {
+			return false, err
+		}
+		adminValue, _ := strconv.Atoi(user["admin"])
+		if user["username"] == username {
+			err = bcrypt.CompareHashAndPassword([]byte(user["password"]), []byte(password))
+			if err != nil {
+				continue
+			}
+			if adminValue == 1 {
+				return true, nil
+			}
+		}
+	}
+	return false, nil
 }
