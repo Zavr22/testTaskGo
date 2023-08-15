@@ -21,6 +21,6 @@ Documentation:
 ------
 Start:
     
-    docker-compose up
+    docker compose up
     -------------------------------------------------
     It will automatically build neccessary containers
