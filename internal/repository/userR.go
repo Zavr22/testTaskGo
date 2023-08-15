@@ -55,7 +55,7 @@ func (r *UserRepo) GetAllUsers(ctx context.Context) ([]*models.UserResponse, err
 		userData, err := r.client.HGetAll(ctx, id).Result()
 		if err != nil {
 			log.Printf("Error occurred while retrieving user data for ID %s: %s", id, err)
-			continue
+			return nil, fmt.Errorf("Error occurred while retrieving user data for ID %s: %s", id, err)
 		}
 		userProfile := &models.UserResponse{
 			ID:       uuid.MustParse(strings.Split(id, ":")[0]),

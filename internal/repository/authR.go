@@ -69,11 +69,7 @@ func (r *AuthRepo) SignIn(ctx context.Context, user *models.SignInInput) error {
 		log.Printf("Error occurred while retrieving user data: %s", err)
 		return fmt.Errorf("error occurred: %s", err)
 	}
-	storedPassword, ok := userData["password"]
-	if !ok {
-		log.Printf("Password not found for user with username %s", user.Username)
-		return fmt.Errorf("user password not found")
-	}
+	storedPassword := userData["password"]
 	err = bcrypt.CompareHashAndPassword([]byte(storedPassword), []byte(user.Password))
 	if err != nil {
 		log.Printf("Incorrect password for user with username %s", user.Username)
