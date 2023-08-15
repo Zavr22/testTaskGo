@@ -3,6 +3,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"github.com/Zavr22/testTaskGo/internal/models"
 	"github.com/google/uuid"
 )
@@ -16,6 +17,7 @@ type User interface {
 	GetUser(ctx context.Context, userID uuid.UUID) (models.UserResponse, error)
 	UpdateProfile(ctx context.Context, userID uuid.UUID, input models.UpdateProfileInput) error
 	DeleteProfile(ctx context.Context, userID uuid.UUID) error
+	GetUsername(ctx context.Context) ([]string, error)
 }
 
 // UserService contains of User repo interface
@@ -30,6 +32,15 @@ func NewUserService(userRepo User) *UserService {
 
 // CreateUser is service method that call repo func
 func (s *UserService) CreateUser(ctx context.Context, user *models.SignUpInput) (uuid.UUID, error) {
+	usernames, err := s.userRepo.GetUsername(ctx)
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("error while getting unames to compare")
+	}
+	for _, username := range usernames {
+		if username == user.Username {
+			return uuid.Nil, fmt.Errorf("username already exists, %s", err)
+		}
+	}
 	return s.userRepo.CreateUser(ctx, user)
 }
 
@@ -45,6 +56,15 @@ func (s *UserService) GetUser(ctx context.Context, userID uuid.UUID) (models.Use
 
 // UpdateProfile is service method that call repo func
 func (s *UserService) UpdateProfile(ctx context.Context, userID uuid.UUID, input models.UpdateProfileInput) error {
+	usernames, err := s.userRepo.GetUsername(ctx)
+	if err != nil {
+		return fmt.Errorf("error while getting unames to compare")
+	}
+	for _, username := range usernames {
+		if username == input.NewUsername {
+			return fmt.Errorf("username already exists, %s", err)
+		}
+	}
 	return s.userRepo.UpdateProfile(ctx, userID, input)
 }
 
