@@ -16,11 +16,12 @@ type UserRepo struct {
 	client *redis.Client
 }
 
-// NewUserRepo used to init UsesAP
+// NewUserRepo used to init UserAP
 func NewUserRepo(client *redis.Client) *UserRepo {
 	return &UserRepo{client: client}
 }
 
+// CreateUser is used to create user by admin using redis
 func (r *UserRepo) CreateUser(ctx context.Context, user *models.SignUpInput) (uuid.UUID, error) {
 	userID := uuid.New()
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
@@ -44,6 +45,7 @@ func (r *UserRepo) CreateUser(ctx context.Context, user *models.SignUpInput) (uu
 	return userID, nil
 }
 
+// GetAllUsers is used to get users using redis
 func (r *UserRepo) GetAllUsers(ctx context.Context) ([]*models.UserResponse, error) {
 	var userProfiles []*models.UserResponse
 	users, err := r.client.HGetAll(ctx, "users").Result()
@@ -68,6 +70,7 @@ func (r *UserRepo) GetAllUsers(ctx context.Context) ([]*models.UserResponse, err
 	return userProfiles, nil
 }
 
+// GetUser is used to get user by id using redis
 func (r *UserRepo) GetUser(ctx context.Context, userID uuid.UUID) (models.UserResponse, error) {
 	userData, err := r.client.HGetAll(ctx, userID.String()).Result()
 	users := r.client.HGetAll(ctx, "users")
@@ -86,6 +89,7 @@ func (r *UserRepo) GetUser(ctx context.Context, userID uuid.UUID) (models.UserRe
 	return userProfile, nil
 }
 
+// UpdateProfile is used to update user profile by admin  using redis
 func (r *UserRepo) UpdateProfile(ctx context.Context, userID uuid.UUID, input models.UpdateProfileInput) error {
 	tx := r.client.TxPipeline()
 	if input.NewEmail != "" {
@@ -116,6 +120,7 @@ func (r *UserRepo) UpdateProfile(ctx context.Context, userID uuid.UUID, input mo
 	return nil
 }
 
+// DeleteProfile is used to delete user profile by admin  using redis
 func (r *UserRepo) DeleteProfile(ctx context.Context, userID uuid.UUID) error {
 	tx := r.client.TxPipeline()
 	tx.Del(ctx, userID.String())

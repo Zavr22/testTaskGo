@@ -29,9 +29,15 @@ import (
 // @type basic
 func main() {
 	e := echo.New()
+
+	// SWAGGER
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
+
+	// LOGGERS
 	logger := logrus.New()
 	logger.Out = os.Stdout
+
+	// MIDDLEWARE
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		LogURI:    true,
 		LogStatus: true,
@@ -43,11 +49,15 @@ func main() {
 			return nil
 		},
 	}))
+
+	// REDIS
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     "redis:6379",
 		Password: "",
 		DB:       0,
 	})
+
+	// SKIPPED HANDLERS BY MIDDLEWARE
 	skipperFunc := func(c echo.Context) bool {
 		if c.Path() == "/auth/sign_up" {
 			return true
@@ -60,6 +70,8 @@ func main() {
 		}
 		return false
 	}
+
+	// MIDDLEWARE
 	config := middleware.BasicAuthConfig{
 		Skipper: skipperFunc,
 		Validator: func(username, password string, c echo.Context) (bool, error) {
@@ -77,6 +89,7 @@ func main() {
 	}
 	e.Use(middleware.BasicAuthWithConfig(config))
 
+	// init utils, services, repos
 	utils.SetRedisClient(rdb)
 	userRepo := repository2.NewUserRepo(rdb)
 	authRepo := repository2.NewAuthRepo(rdb)
@@ -87,6 +100,7 @@ func main() {
 	profileHandler := handler.NewHandler(userServ, authServ)
 	profileHandler.InitRoutes(e)
 
+	// Graceful shutdown
 	logrus.Print("App Started")
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)

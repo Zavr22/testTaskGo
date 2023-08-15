@@ -163,6 +163,7 @@ func (h *Handler) DeleteUser(c echo.Context) error {
 	errDelete := h.userS.DeleteProfile(c.Request().Context(), userID)
 	if err != nil {
 		logrus.Errorf("error while delete user, %s", errDelete)
+		return echo.NewHTTPError(http.StatusBadRequest, models.CommonResponse{Message: "couldn't delete user"})
 	}
 	return c.JSON(http.StatusOK, models.CommonResponse{Message: "user deleted successfully"})
 }

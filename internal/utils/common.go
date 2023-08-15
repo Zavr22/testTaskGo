@@ -10,10 +10,12 @@ import (
 
 var redisClient *redis.Client
 
+// SetRedisClient is used to set redis client for middleware methods
 func SetRedisClient(client *redis.Client) {
 	redisClient = client
 }
 
+// IsUserValid is used to validate user by credentials in redis
 func IsUserValid(username, password string) (bool, error) {
 	val, err := redisClient.Keys(redisClient.Context(), "*").Result()
 	if err != nil {
@@ -40,6 +42,7 @@ func IsUserValid(username, password string) (bool, error) {
 	return false, nil
 }
 
+// IsAdmin is used to check role in redis
 func IsAdmin(username, password string) (bool, error) {
 	val, err := redisClient.Keys(redisClient.Context(), "*").Result()
 	if err != nil {
