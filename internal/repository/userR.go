@@ -137,3 +137,25 @@ func (r *UserRepo) DeleteProfile(ctx context.Context, userID uuid.UUID) error {
 
 	return nil
 }
+
+// GetUsername is used to get usernames from db
+func (r *UserRepo) GetUsername(ctx context.Context) ([]string, error) {
+	userNameArr := make([]string, 0)
+	val, err := r.client.Keys(ctx, "*").Result()
+	if err != nil {
+		if err == redis.Nil {
+			log.Println("Key does not exist in Redis:")
+			return nil, fmt.Errorf("key does not exist in Redis:%s", err)
+		}
+		log.Println("Redis error while retrieving value:", err)
+		return nil, fmt.Errorf("redis error while retrieving value: %s", err)
+	}
+	for _, value := range val {
+		user, err := r.client.HGetAll(ctx, value).Result()
+		if err != nil {
+			return nil, fmt.Errorf("error while getting username")
+		}
+		userNameArr = append(userNameArr, user["username"])
+	}
+	return userNameArr, nil
+}
