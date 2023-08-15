@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 )
 
+// AdminMiddleware is a func to check if the user is admin
 func AdminMiddleware() echo.MiddlewareFunc {
 	return middleware.BasicAuth(func(username string, password string, context echo.Context) (bool, error) {
 		admin, err := utils.IsAdmin(username, password)

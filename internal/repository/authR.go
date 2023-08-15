@@ -21,6 +21,7 @@ func NewAuthRepo(client *redis.Client) *AuthRepo {
 	return &AuthRepo{client: client}
 }
 
+// SignUp func is used to sign user up using redis
 func (r *AuthRepo) SignUp(ctx context.Context, user *models.SignUpInput) (uuid.UUID, error) {
 	userID := uuid.New()
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
@@ -44,6 +45,7 @@ func (r *AuthRepo) SignUp(ctx context.Context, user *models.SignUpInput) (uuid.U
 	return userID, nil
 }
 
+// SignIn func is used to sign user in using redis
 func (r *AuthRepo) SignIn(ctx context.Context, user *models.SignInInput) error {
 	log.Printf("Attempting to sign in user with username: %s", user.Username)
 	users, err := r.client.HGetAll(ctx, "users").Result()
