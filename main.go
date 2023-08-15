@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	_ "github.com/Zavr22/testTaskGo/docs"
 	"github.com/Zavr22/testTaskGo/internal/handler"
 	repository2 "github.com/Zavr22/testTaskGo/internal/repository"
@@ -12,6 +13,8 @@ import (
 	"github.com/sirupsen/logrus"
 	echoSwagger "github.com/swaggo/echo-swagger"
 	"os"
+	"os/signal"
+	"syscall"
 )
 
 // @title TestTask Server
@@ -41,7 +44,7 @@ func main() {
 		},
 	}))
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
+		Addr:     "redis:6379",
 		Password: "",
 		DB:       0,
 	})
@@ -83,4 +86,19 @@ func main() {
 
 	profileHandler := handler.NewHandler(userServ, authServ)
 	profileHandler.InitRoutes(e)
+
+	logrus.Print("App Started")
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
+	<-quit
+
+	logrus.Print("App Shutting Down")
+
+	if err := e.Shutdown(context.Background()); err != nil {
+		logrus.Errorf("error occured on server shutting down: %s", err.Error())
+	}
+
+	if err := rdb.Close(); err != nil {
+		logrus.Errorf("error occured on db connection close: %s", err.Error())
+	}
 }
