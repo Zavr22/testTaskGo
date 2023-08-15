@@ -304,7 +304,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.SignInResponse"
+                            "$ref": "#/definitions/models.CommonResponse"
                         }
                     },
                     "401": {
@@ -398,14 +398,6 @@ const docTemplate = `{
                 }
             }
         },
-        "models.SignInResponse": {
-            "type": "object",
-            "properties": {
-                "token": {
-                    "type": "string"
-                }
-            }
-        },
         "models.SignUpInput": {
             "type": "object",
             "properties": {
@@ -476,10 +468,8 @@ const docTemplate = `{
         }
     },
     "securityDefinitions": {
-        "ApiKeyAuth": {
-            "type": "apiKey",
-            "name": "Authorization",
-            "in": "header"
+        "BasicAuth": {
+            "type": "basic"
         }
     }
 }`
@@ -491,7 +481,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "TestTask Server",
-	Description:      "API Server for Test Task",
+	Description:      "Basic authentication username and password",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 }

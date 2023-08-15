@@ -21,23 +21,23 @@ func NewUserRepo(client *redis.Client) *UserRepo {
 	return &UserRepo{client: client}
 }
 
-func (r *UserRepo) CreateUser(ctx context.Context, email, username, password string, admin bool) (uuid.UUID, error) {
+func (r *UserRepo) CreateUser(ctx context.Context, user *models.SignUpInput) (uuid.UUID, error) {
 	userID := uuid.New()
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return uuid.Nil, err
 	}
 	userData := map[string]interface{}{
-		"email":    email,
-		"username": username,
-		"password": password,
-		"admin":    admin,
+		"email":    user.Email,
+		"username": user.Username,
+		"password": string(hashedPassword),
+		"admin":    user.Admin,
 	}
 	err = r.client.HMSet(ctx, userID.String(), userData).Err()
 	if err != nil {
 		return uuid.Nil, err
 	}
-	err = r.client.HSet(ctx, "users", userID.String(), fmt.Sprintf("%s:%s", username, string(hashedPassword))).Err()
+	err = r.client.HSet(ctx, "users", userID.String(), fmt.Sprintf("%s:%s", user.Username, string(hashedPassword))).Err()
 	if err != nil {
 		return uuid.Nil, err
 	}

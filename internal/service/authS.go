@@ -6,9 +6,11 @@ import (
 	"github.com/google/uuid"
 )
 
+//go:generate mockgen -source=authS.go -destination=mocks/auth_mock.go
+
 type Authorization interface {
 	SignUp(ctx context.Context, user *models.SignUpInput) (uuid.UUID, error)
-	SignIn(ctx context.Context, user *models.SignInInput) (string, error)
+	SignIn(ctx context.Context, user *models.SignInInput) error
 }
 
 type AuthService struct {
@@ -23,6 +25,6 @@ func (s *AuthService) SignUp(ctx context.Context, user *models.SignUpInput) (uui
 	return s.repo.SignUp(ctx, user)
 }
 
-func (s *AuthService) SignIn(ctx context.Context, user *models.SignInInput) (string, error) {
+func (s *AuthService) SignIn(ctx context.Context, user *models.SignInInput) error {
 	return s.repo.SignIn(ctx, user)
 }

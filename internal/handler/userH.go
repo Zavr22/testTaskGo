@@ -23,7 +23,7 @@ import (
 // @Failure 500 {object} models.CommonResponse
 // @Router /api/users [post]
 func (h *Handler) CreateUser(c echo.Context) error {
-	var reqBody models.UserProfile
+	var reqBody models.SignUpInput
 	errBind := c.Bind(&reqBody)
 	if errBind != nil {
 		logrus.WithFields(logrus.Fields{
@@ -31,7 +31,7 @@ func (h *Handler) CreateUser(c echo.Context) error {
 		}).Errorf("Bind json, %s", errBind)
 		return echo.NewHTTPError(http.StatusInternalServerError, models.CommonResponse{Message: "data not correct"})
 	}
-	userID, err := h.userS.CreateUser(c.Request().Context(), reqBody.Email, reqBody.Username, reqBody.Password, reqBody.Admin)
+	userID, err := h.userS.CreateUser(c.Request().Context(), &reqBody)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"userID": userID,

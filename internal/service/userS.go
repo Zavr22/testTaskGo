@@ -6,8 +6,10 @@ import (
 	"github.com/google/uuid"
 )
 
+//go:generate mockgen -source=userS.go -destination=mocks/user_mock.go
+
 type User interface {
-	CreateUser(ctx context.Context, email, username, password string, admin bool) (uuid.UUID, error)
+	CreateUser(ctx context.Context, user *models.SignUpInput) (uuid.UUID, error)
 	GetAllUsers(ctx context.Context) ([]*models.UserResponse, error)
 	GetUser(ctx context.Context, userID uuid.UUID) (models.UserResponse, error)
 	UpdateProfile(ctx context.Context, userID uuid.UUID, input models.UpdateProfileInput) error
@@ -22,8 +24,8 @@ func NewUserService(userRepo User) *UserService {
 	return &UserService{userRepo: userRepo}
 }
 
-func (s *UserService) CreateUser(ctx context.Context, email, username, password string, admin bool) (uuid.UUID, error) {
-	return s.userRepo.CreateUser(ctx, email, username, password, admin)
+func (s *UserService) CreateUser(ctx context.Context, user *models.SignUpInput) (uuid.UUID, error) {
+	return s.userRepo.CreateUser(ctx, user)
 }
 
 func (s *UserService) GetAllUsers(ctx context.Context) ([]*models.UserResponse, error) {

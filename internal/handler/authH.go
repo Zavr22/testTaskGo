@@ -46,7 +46,7 @@ func (h *Handler) SignUp(c echo.Context) error {
 // @Accept  json
 // @Produce  json
 // @Param input body models.SignInInput true "enter username and password"
-// @Success 200 {object} models.SignInResponse
+// @Success 200 {object} models.CommonResponse
 // @Failure 401 {object} models.CommonResponse
 // @Failure 500 {object} models.CommonResponse
 // @Router /auth/sign_in [post]
@@ -59,10 +59,10 @@ func (h *Handler) SignIn(c echo.Context) error {
 		}).Errorf("Bind json, %s", errBind)
 		return echo.NewHTTPError(http.StatusInternalServerError, models.CommonResponse{Message: "data not correct"})
 	}
-	token, err := h.authS.SignIn(c.Request().Context(), &user)
+	err := h.authS.SignIn(c.Request().Context(), &user)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, models.CommonResponse{Message: "fail to sign in"})
 	}
 
-	return c.JSON(http.StatusOK, models.SignInResponse{Token: token})
+	return c.JSON(http.StatusOK, models.CommonResponse{Message: "you successfully signed in"})
 }

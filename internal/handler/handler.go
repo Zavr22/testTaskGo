@@ -10,11 +10,11 @@ import (
 
 type Authorization interface {
 	SignUp(ctx context.Context, user *models.SignUpInput) (uuid.UUID, error)
-	SignIn(ctx context.Context, user *models.SignInInput) (string, error)
+	SignIn(ctx context.Context, user *models.SignInInput) error
 }
 
 type User interface {
-	CreateUser(ctx context.Context, email, username, password string, admin bool) (uuid.UUID, error)
+	CreateUser(ctx context.Context, user *models.SignUpInput) (uuid.UUID, error)
 	GetAllUsers(ctx context.Context) ([]*models.UserResponse, error)
 	GetUser(ctx context.Context, userID uuid.UUID) (models.UserResponse, error)
 	UpdateProfile(ctx context.Context, userID uuid.UUID, input models.UpdateProfileInput) error
